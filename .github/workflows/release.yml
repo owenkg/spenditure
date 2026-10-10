@@ -37,6 +37,21 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Generate OpenAPI spec
+        run: pnpm --filter @spenditure/api run docs:generate
+        env:
+          DATABASE_URL: file:./gen.db
+          NODE_ENV: development
+          JWT_SECRET: placeholder-secret-32-chars-for-spec
+          JWT_REFRESH_SECRET: placeholder-refresh-32-chars-spec
+
+      - name: Deploy API docs to bump.sh
+        uses: bump-sh/github-action@v1
+        with:
+          doc: spenditure
+          token: ${{ secrets.BUMP_TOKEN }}
+          file: apps/api/openapi.json
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

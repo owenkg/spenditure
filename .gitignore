@@ -21,6 +21,9 @@ out/
 *.db-shm
 *.db-wal
 
+# Generated specs
+openapi.json
+
 # Prisma
 
 # OS

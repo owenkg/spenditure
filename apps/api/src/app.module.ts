@@ -9,6 +9,9 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { CategoriesModule } from './categories/categories.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { HealthModule } from './health/health.module';
+import { ImportModule } from './import/import.module';
+import { ExportModule } from './export/export.module';
+import { SettingsModule } from './settings/settings.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AppService } from './app.service';
@@ -24,6 +27,9 @@ import { AppService } from './app.service';
     CategoriesModule,
     BudgetsModule,
     HealthModule,
+    ImportModule,
+    ExportModule,
+    SettingsModule,
   ],
   providers: [
     AppService,

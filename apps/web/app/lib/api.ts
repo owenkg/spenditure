@@ -42,6 +42,19 @@ export async function logout(): Promise<void> {
   }).catch(() => {});
 }
 
+async function upload<T>(path: string, form: FormData): Promise<T> {
+  const res = await fetch(`${BASE}/api${path}`, {
+    method: 'POST',
+    body: form,
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, (body as { message?: string }).message ?? res.statusText);
+  }
+  return res.json() as Promise<T>;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: 'GET' }),
   post: <T>(path: string, body: unknown) =>
@@ -49,4 +62,5 @@ export const api = {
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  uploadForm: <T>(path: string, form: FormData) => upload<T>(path, form),
 };
