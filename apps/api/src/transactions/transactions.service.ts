@@ -134,6 +134,34 @@ export class TransactionsService {
     };
   }
 
+  async getChartData(userId: string, days: number) {
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(end);
+    start.setDate(start.getDate() - (days - 1));
+    start.setHours(0, 0, 0, 0);
+
+    const txns = await this.prisma.transaction.findMany({
+      where: { userId, type: { in: ['INCOME', 'EXPENSE'] }, date: { gte: start, lte: end } },
+      select: { type: true, amount: true, date: true },
+    });
+
+    const buckets: Record<string, { date: string; income: number; expense: number }> = {};
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      buckets[key] = { date: key, income: 0, expense: 0 };
+    }
+    for (const tx of txns) {
+      const key = tx.date.toISOString().slice(0, 10);
+      if (!buckets[key]) continue;
+      if (tx.type === 'INCOME') buckets[key].income += tx.amount.toNumber();
+      else buckets[key].expense += tx.amount.toNumber();
+    }
+    return Object.values(buckets);
+  }
+
   private buildWhereClause(userId: string, query: QueryTransactionsDto) {
     return {
       userId,

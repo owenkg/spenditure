@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
@@ -12,6 +13,7 @@ import { HealthModule } from './health/health.module';
 import { ImportModule } from './import/import.module';
 import { ExportModule } from './export/export.module';
 import { SettingsModule } from './settings/settings.module';
+import { RecurringModule } from './recurring/recurring.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AppService } from './app.service';
@@ -19,6 +21,7 @@ import { AppService } from './app.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
     AuthModule,
@@ -30,6 +33,7 @@ import { AppService } from './app.service';
     ImportModule,
     ExportModule,
     SettingsModule,
+    RecurringModule,
   ],
   providers: [
     AppService,

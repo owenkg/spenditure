@@ -3,6 +3,7 @@ import { useNavigate } from '@remix-run/react';
 const NAV_ITEMS = [
   { label: 'Home', icon: '⊞', path: '/dashboard' },
   { label: 'Txns', icon: '↕', path: '/transactions' },
+  { label: 'Recurring', icon: '↻', path: '/recurring' },
   { label: 'Accounts', icon: '🗂', path: '/accounts' },
   { label: 'Settings', icon: '⚙', path: '/settings' },
 ];

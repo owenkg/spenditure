@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -22,6 +23,14 @@ import { CurrentUser, type JwtPayload } from '../auth/decorators/current-user.de
 @Controller({ version: '1', path: 'transactions' })
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
+
+  @Get('chart')
+  getChartData(
+    @CurrentUser() user: JwtPayload,
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
+  ) {
+    return this.transactionsService.getChartData(user.sub, days ?? 7);
+  }
 
   @Get('summary')
   getSummary(
