@@ -108,6 +108,7 @@ jobs:
         run: pnpm --filter @spenditure/web build
         env:
           NODE_ENV: production
+          VITE_API_URL: https://spenditure-api.onrender.com
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
