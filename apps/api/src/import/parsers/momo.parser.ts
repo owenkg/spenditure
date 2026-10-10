@@ -13,10 +13,6 @@ function sanitize(s: string): string {
   return s.replace(/<[^>]*>/g, '').trim();
 }
 
-function parseAmount(raw: string): number {
-  return parseFloat(raw.replace(/UGX\s*/i, '').replace(/,/g, '').trim()) || 0;
-}
-
 function extractTableRows(html: string): string[][] {
   const rows: string[][] = [];
   const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;

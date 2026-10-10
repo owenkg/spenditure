@@ -5,8 +5,6 @@ import type { ClearDataDto } from './dto/clear-data.dto';
 import type { ChangePinDto } from './dto/change-pin.dto';
 import type { UpdateProfileDto } from './dto/update-profile.dto';
 
-const OWNER_EMAIL = 'owner@spenditure.local';
-
 @Injectable()
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
