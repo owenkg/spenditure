@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [
     remix({
       ssr: false,
+      basename: isProd ? '/spenditure/' : '/',
       future: {
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
