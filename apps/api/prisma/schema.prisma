@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  pinHash   String
+  currency  String   @default("UGX")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  transactions Transaction[]
+  categories   Category[]
+  budgets      Budget[]
+  recurring    RecurringTransaction[]
+}
+
+// type: BANK | MOBILE_MONEY | CASH | SAVINGS | INVESTMENT
+model Account {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  type       String
+  balance    Decimal  @default(0)
+  currency   String   @default("UGX")
+  color      String
+  icon       String
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] @relation("AccountTransactions")
+  transfersTo  Transaction[] @relation("TransferToAccount")
+}
+
+// type: INCOME | EXPENSE | TRANSFER
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String
+  icon      String
+  color     String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("SubCategory", fields: [parentId], references: [id])
+  children     Category[]    @relation("SubCategory")
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+// type: INCOME | EXPENSE | TRANSFER
+model Transaction {
+  id           String   @id @default(cuid())
+  userId       String
+  accountId    String
+  categoryId   String?
+  type         String
+  amount       Decimal
+  description  String
+  note         String?
+  date         DateTime
+  toAccountId  String?
+  importSource String?
+  externalRef  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account   Account   @relation("AccountTransactions", fields: [accountId], references: [id])
+  category  Category? @relation(fields: [categoryId], references: [id])
+  toAccount Account?  @relation("TransferToAccount", fields: [toAccountId], references: [id])
+}
+
+// period: WEEKLY | MONTHLY | QUARTERLY | YEARLY
+model Budget {
+  id         String    @id @default(cuid())
+  userId     String
+  categoryId String
+  amount     Decimal
+  period     String
+  startDate  DateTime
+  endDate    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+// frequency: DAILY | WEEKLY | BIWEEKLY | MONTHLY | QUARTERLY | YEARLY
+// type: INCOME | EXPENSE | TRANSFER
+model RecurringTransaction {
+  id          String    @id @default(cuid())
+  userId      String
+  accountId   String
+  categoryId  String?
+  type        String
+  amount      Decimal
+  description String
+  frequency   String
+  nextDate    DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
