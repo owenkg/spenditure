@@ -22,7 +22,6 @@ out/
 *.db-wal
 
 # Prisma
-apps/api/prisma/migrations/
 
 # OS
 .DS_Store

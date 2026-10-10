@@ -8,13 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  pinHash   String
-  currency  String   @default("UGX")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  pinHash          String
+  currency         String    @default("UGX")
+  loginAttempts    Int       @default(0)
+  lockedUntil      DateTime?
+  refreshTokenHash String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   accounts     Account[]
   transactions Transaction[]

@@ -1,20 +1,7 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from '@remix-run/react';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import stylesheet from './tailwind.css?url';
 
-export const links = () => [
-  { rel: 'stylesheet', href: stylesheet as string },
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  },
-];
+export const links = () => [{ rel: 'stylesheet', href: stylesheet as string }];
 
 export default function App() {
   return (

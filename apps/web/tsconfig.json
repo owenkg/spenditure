@@ -6,14 +6,13 @@
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "outDir": "dist",
-    "rootDir": ".",
+    "noEmit": true,
     "paths": {
       "@spenditure/types": ["../../packages/types/src"],
       "@spenditure/utils": ["../../packages/utils/src"],
       "~/*": ["./app/*"]
     }
   },
-  "include": ["app", "vite.config.ts"],
+  "include": ["app", "vite.config.ts", "../../packages/types/src", "../../packages/utils/src"],
   "exclude": ["node_modules", "dist"]
 }
