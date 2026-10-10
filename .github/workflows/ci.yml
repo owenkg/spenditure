@@ -121,3 +121,30 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  auto-release:
+    name: Auto Release
+    runs-on: ubuntu-latest
+    needs: [deploy-pages]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        run: |
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          if [ -z "$LATEST" ]; then LATEST="v0.0.0"; fi
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST#v}"
+          NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "tag=$NEXT" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
