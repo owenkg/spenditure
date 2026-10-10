@@ -20,9 +20,7 @@ out/
 *.db
 *.db-shm
 *.db-wal
-
-# Generated specs
-openapi.json
+*.db-journal
 
 # Prisma
 
