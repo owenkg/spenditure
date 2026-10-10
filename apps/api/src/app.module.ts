@@ -6,8 +6,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { CategoriesModule } from './categories/categories.module';
+import { BudgetsModule } from './budgets/budgets.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -17,8 +20,11 @@ import { TransformResponseInterceptor } from './common/interceptors/transform-re
     AuthModule,
     AccountsModule,
     TransactionsModule,
+    CategoriesModule,
+    BudgetsModule,
   ],
   providers: [
+    AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
