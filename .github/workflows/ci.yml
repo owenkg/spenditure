@@ -9,7 +9,7 @@ on:
 jobs:
   lint-typecheck:
     name: Lint & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +31,7 @@ jobs:
 
   test:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint-typecheck]
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
 
   deploy-pages:
     name: Deploy to GitHub Pages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -125,7 +125,7 @@ jobs:
 
   auto-release:
     name: Auto Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [deploy-pages]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
