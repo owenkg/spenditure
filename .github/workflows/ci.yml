@@ -109,6 +109,7 @@ jobs:
         env:
           NODE_ENV: production
           VITE_API_URL: https://spenditure-api.onrender.com
+          VITE_BASE_PATH: /spenditure/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -2,14 +2,14 @@ import { vitePlugin as remix } from '@remix-run/dev';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const isProd = process.env.NODE_ENV === 'production';
+const basePath = process.env.VITE_BASE_PATH ?? '/';
 
 export default defineConfig({
-  base: isProd ? '/spenditure/' : '/',
+  base: basePath,
   plugins: [
     remix({
       ssr: false,
-      basename: isProd ? '/spenditure/' : '/',
+      basename: basePath,
       future: {
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
@@ -27,8 +27,8 @@ export default defineConfig({
         background_color: '#F3EDE1',
         display: 'standalone',
         orientation: 'portrait',
-        scope: isProd ? '/spenditure/' : '/',
-        start_url: isProd ? '/spenditure/' : '/',
+        scope: basePath,
+        start_url: basePath,
         icons: [
           {
             src: 'pwa-192x192.png',
