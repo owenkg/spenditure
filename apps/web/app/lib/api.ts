@@ -32,7 +32,9 @@ export class ApiError extends Error {
 }
 
 export function isAuthenticated(): boolean {
-  return document.cookie.includes('access_token=');
+  // access_token is httpOnly so JS can't read it; logged_in is a non-httpOnly marker set
+  // alongside it by the API so the frontend can detect auth state.
+  return document.cookie.includes('logged_in=');
 }
 
 export async function logout(): Promise<void> {

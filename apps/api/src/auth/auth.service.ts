@@ -134,6 +134,13 @@ export class AuthService {
     };
     res.cookie('access_token', accessToken, { ...cookieOpts, maxAge: 15 * 60 * 1000 });
     res.cookie('refresh_token', refreshToken, { ...cookieOpts, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    // JS-readable marker so the frontend can detect auth state (access_token is httpOnly).
+    res.cookie('logged_in', '1', {
+      secure: isProd,
+      sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
@@ -147,5 +154,6 @@ export class AuthService {
     const opts = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax', path: '/' };
     res.clearCookie('access_token', opts);
     res.clearCookie('refresh_token', opts);
+    res.clearCookie('logged_in', { secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax', path: '/' });
   }
 }
