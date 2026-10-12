@@ -59,7 +59,7 @@ function ImportCard({
       <p className="text-xs text-gray-500 mb-4">{hint}</p>
 
       <div
-        className="border-2 border-dashed border-amber/50 rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-amber active:bg-amber/5"
+        className="border-2 border-dashed border-amber-500/50 rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-amber-500 active:bg-amber-500/5"
         onDrop={onDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => inputRef.current?.click()}

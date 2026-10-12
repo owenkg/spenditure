@@ -61,7 +61,7 @@ export default function SettingsPage() {
           <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
             Export as CSV
           </button>
-          <div className="border-t border-parchment dark:border-forest-700" />
+          <div className="border-t border-parchment-200 dark:border-forest-700" />
           <button onClick={() => exportDownload('excel')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
             Export as Excel (.xlsx)
           </button>
@@ -81,7 +81,7 @@ export default function SettingsPage() {
           >
             Clear all transaction data…
           </button>
-          <div className="border-t border-parchment dark:border-forest-700" />
+          <div className="border-t border-parchment-200 dark:border-forest-700" />
           <button
             onClick={handleLogout}
             className="w-full text-left px-4 py-3 text-sm text-red-400"
@@ -103,7 +103,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 px-1">{title}</p>
-      <div className="bg-white dark:bg-forest-900 rounded-2xl overflow-hidden divide-y divide-parchment dark:divide-forest-700">
+      <div className="bg-white dark:bg-forest-900 rounded-2xl overflow-hidden divide-y divide-parchment-200 dark:divide-forest-700">
         {children}
       </div>
     </div>
