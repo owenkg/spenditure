@@ -31,10 +31,20 @@ export class ApiError extends Error {
   }
 }
 
+// Auth state is stored in localStorage because:
+// - access_token is httpOnly (not readable by JS)
+// - cookies from spenditure-api.onrender.com are never visible in document.cookie
+//   when the page is served from spenditure.onrender.com (different origins)
 export function isAuthenticated(): boolean {
-  // access_token is httpOnly so JS can't read it; logged_in is a non-httpOnly marker set
-  // alongside it by the API so the frontend can detect auth state.
-  return document.cookie.includes('logged_in=');
+  return localStorage.getItem('auth') === '1';
+}
+
+export function setAuthenticated(value: boolean): void {
+  if (value) {
+    localStorage.setItem('auth', '1');
+  } else {
+    localStorage.removeItem('auth');
+  }
 }
 
 export async function logout(): Promise<void> {
@@ -42,6 +52,7 @@ export async function logout(): Promise<void> {
     method: 'POST',
     credentials: 'include',
   }).catch(() => {});
+  setAuthenticated(false);
 }
 
 async function upload<T>(path: string, form: FormData): Promise<T> {
