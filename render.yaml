@@ -15,6 +15,7 @@ services:
         - apps/api/**
         - packages/**
         - pnpm-lock.yaml
+        - pnpm-workspace.yaml
     envVars:
       - key: NODE_ENV
         value: production
@@ -42,6 +43,7 @@ services:
         - apps/web/**
         - packages/**
         - pnpm-lock.yaml
+        - pnpm-workspace.yaml
     envVars:
       - key: NODE_ENV
         value: production
