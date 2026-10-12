@@ -1,0 +1,9 @@
+pre-push:
+  parallel: false
+  commands:
+    typecheck:
+      name: TypeScript check
+      run: pnpm turbo typecheck
+    lint:
+      name: ESLint
+      run: pnpm turbo lint

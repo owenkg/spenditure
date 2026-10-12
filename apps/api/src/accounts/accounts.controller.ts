@@ -38,6 +38,7 @@ export class AccountsController {
   @Post()
   @ApiOperation({ summary: 'Create an account' })
   @ApiBody({
+    type: CreateAccountDto,
     examples: {
       bank: {
         summary: 'Bank account',
@@ -60,6 +61,7 @@ export class AccountsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update account fields' })
   @ApiBody({
+    type: UpdateAccountDto,
     examples: {
       rename: {
         value: { name: 'Stanbic Bank' },

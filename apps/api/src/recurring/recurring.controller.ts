@@ -27,6 +27,7 @@ export class RecurringController {
   @Post()
   @ApiOperation({ summary: 'Schedule a recurring transaction' })
   @ApiBody({
+    type: CreateRecurringDto,
     examples: {
       salary: {
         summary: 'Monthly salary',
@@ -49,6 +50,7 @@ export class RecurringController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a recurring entry or pause/resume it' })
   @ApiBody({
+    type: UpdateRecurringDto,
     examples: {
       pause: {
         summary: 'Pause',

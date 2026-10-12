@@ -38,6 +38,7 @@ export class BudgetsController {
   @Post()
   @ApiOperation({ summary: 'Create a budget' })
   @ApiBody({
+    type: CreateBudgetDto,
     examples: {
       monthly: {
         summary: 'Monthly food budget',
@@ -56,6 +57,7 @@ export class BudgetsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update budget amount, period, or end date' })
   @ApiBody({
+    type: UpdateBudgetDto,
     examples: {
       increase: {
         value: { amount: 700000 },

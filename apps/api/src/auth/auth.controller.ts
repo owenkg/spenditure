@@ -36,6 +36,7 @@ export class AuthController {
   @Post('setup')
   @ApiOperation({ summary: 'Create owner account (run once)' })
   @ApiBody({
+    type: SetupDto,
     examples: {
       default: {
         value: { name: 'George', pin: '1234' },
@@ -52,6 +53,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate with PIN' })
   @ApiBody({
+    type: LoginDto,
     examples: {
       default: {
         value: { pin: '1234' },
@@ -68,6 +70,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Rotate token pair using refresh token' })
   @ApiBody({
+    type: RefreshDto,
     examples: {
       default: {
         value: { refreshToken: '<refresh-token-from-login-response>' },

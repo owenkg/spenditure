@@ -56,6 +56,7 @@ export class TransactionsController {
   @Post()
   @ApiOperation({ summary: 'Create a transaction' })
   @ApiBody({
+    type: CreateTransactionDto,
     examples: {
       expense: {
         summary: 'Expense',

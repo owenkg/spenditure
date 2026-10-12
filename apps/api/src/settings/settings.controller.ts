@@ -16,6 +16,7 @@ export class SettingsController {
   @Post('data/clear')
   @ApiOperation({ summary: 'Wipe all transactions (requires PIN confirmation)' })
   @ApiBody({
+    type: ClearDataDto,
     examples: {
       default: {
         value: { pin: '1234' },
@@ -29,6 +30,7 @@ export class SettingsController {
   @Patch('pin')
   @ApiOperation({ summary: 'Change PIN' })
   @ApiBody({
+    type: ChangePinDto,
     examples: {
       default: {
         value: { currentPin: '1234', newPin: '5678' },
@@ -42,6 +44,7 @@ export class SettingsController {
   @Patch('profile')
   @ApiOperation({ summary: 'Update display name' })
   @ApiBody({
+    type: UpdateProfileDto,
     examples: {
       default: {
         value: { name: 'George Kivumbi' },

@@ -39,6 +39,7 @@ export class CategoriesController {
   @Post()
   @ApiOperation({ summary: 'Create a category' })
   @ApiBody({
+    type: CreateCategoryDto,
     examples: {
       expense: {
         summary: 'Expense category',
@@ -61,6 +62,7 @@ export class CategoriesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a category' })
   @ApiBody({
+    type: UpdateCategoryDto,
     examples: {
       rename: {
         value: { name: 'Groceries' },
