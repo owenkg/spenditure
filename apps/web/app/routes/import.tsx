@@ -3,6 +3,8 @@ import { Link } from '@remix-run/react';
 import { BottomNav } from '~/components/BottomNav';
 import { api } from '~/lib/api';
 
+const BASE = (import.meta as { env: Record<string, string> }).env.VITE_API_URL ?? 'http://localhost:3000';
+
 interface ImportResult {
   imported: number;
   skipped: number;
@@ -21,11 +23,13 @@ function ImportCard({
   accept,
   endpoint,
   hint,
+  templateUrl,
 }: {
   title: string;
   accept: string;
   endpoint: string;
   hint: string;
+  templateUrl?: string;
 }) {
   const [state, setState] = useState<CardState>({ file: null, loading: false, result: null, error: null });
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +59,18 @@ function ImportCard({
 
   return (
     <div className="bg-white dark:bg-forest-900 rounded-2xl p-5 shadow-sm border border-parchment-200 dark:border-forest-700">
-      <h2 className="font-semibold text-forest-600 dark:text-parchment-100 mb-1">{title}</h2>
+      <div className="flex items-start justify-between mb-1 gap-2">
+        <h2 className="font-semibold text-forest-600 dark:text-parchment-100">{title}</h2>
+        {templateUrl && (
+          <a
+            href={templateUrl}
+            download
+            className="text-xs text-amber-500 font-medium whitespace-nowrap shrink-0 hover:underline"
+          >
+            ↓ Download template
+          </a>
+        )}
+      </div>
       <p className="text-xs text-gray-500 mb-4">{hint}</p>
 
       <div
@@ -97,10 +112,10 @@ function ImportCard({
             ✓ Imported {state.result.imported} transaction{state.result.imported !== 1 ? 's' : ''}
           </p>
           {state.result.skipped > 0 && (
-            <p className="text-gray-500 text-xs mt-0.5">{state.result.skipped} duplicates skipped</p>
+            <p className="text-gray-500 text-xs mt-0.5">{state.result.skipped} already imported, skipped</p>
           )}
           {state.result.errors.length > 0 && (
-            <p className="text-red-500 text-xs mt-0.5">{state.result.errors.length} errors</p>
+            <p className="text-red-500 text-xs mt-0.5">{state.result.errors.length} rows had errors</p>
           )}
         </div>
       )}
@@ -136,6 +151,13 @@ export default function ImportPage() {
           accept=".eml,message/rfc822,text/plain"
           endpoint="/v1/import/momo"
           hint="Forward the MoMo statement email from MoMoStatement@mtn.com and save it as .eml, then import."
+        />
+        <ImportCard
+          title="Personal Ledger Spreadsheet"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          endpoint="/v1/import/ledger"
+          hint="Import your personal expenditure spreadsheet (.xlsx). Each monthly sheet needs: Date (YYYY-MM-DD), Amount, Type, Category, Account, Notes."
+          templateUrl={`${BASE}/api/v1/import/ledger/template`}
         />
       </div>
 
