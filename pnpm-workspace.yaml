@@ -9,3 +9,4 @@ allowBuilds:
   bcrypt: true
   esbuild: true
   prisma: true
+  lefthook: true
