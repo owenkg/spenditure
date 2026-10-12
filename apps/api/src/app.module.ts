@@ -17,8 +17,10 @@ import { RecurringModule } from './recurring/recurring.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AppService } from './app.service';
+import { AppController, RootController } from './app.controller';
 
 @Module({
+  controllers: [AppController, RootController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
