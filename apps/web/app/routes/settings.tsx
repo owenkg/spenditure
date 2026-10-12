@@ -32,8 +32,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment dark:bg-forest-950 flex flex-col pb-20">
-      <header className="sticky top-0 z-10 bg-forest px-4 py-4">
+    <div className="min-h-screen bg-parchment-100 dark:bg-forest-900 flex flex-col pb-20">
+      <header className="sticky top-0 z-10 bg-forest-600 px-4 py-4">
         <h1 className="text-white font-semibold">Settings</h1>
       </header>
 
@@ -43,7 +43,7 @@ export default function SettingsPage() {
           <Row label="Name" value={user?.name ?? '…'} />
           <button
             onClick={() => setShowPin(true)}
-            className="w-full text-left px-4 py-3 text-sm text-amber font-medium"
+            className="w-full text-left px-4 py-3 text-sm text-amber-500 font-medium"
           >
             Change PIN →
           </button>
@@ -51,18 +51,18 @@ export default function SettingsPage() {
 
         {/* Import */}
         <Section title="Import">
-          <Link to="/import" className="block px-4 py-3 text-sm text-forest dark:text-parchment">
+          <Link to="/import" className="block px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
             Import Bank / MoMo Statement →
           </Link>
         </Section>
 
         {/* Export */}
         <Section title="Export">
-          <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest dark:text-parchment">
+          <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
             Export as CSV
           </button>
           <div className="border-t border-parchment dark:border-forest-700" />
-          <button onClick={() => exportDownload('excel')} className="w-full text-left px-4 py-3 text-sm text-forest dark:text-parchment">
+          <button onClick={() => exportDownload('excel')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
             Export as Excel (.xlsx)
           </button>
         </Section>
@@ -114,7 +114,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between px-4 py-3">
       <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-forest dark:text-parchment">{value}</span>
+      <span className="text-sm font-medium text-forest-600 dark:text-parchment-100">{value}</span>
     </div>
   );
 }
@@ -152,7 +152,7 @@ function ChangePinSheet({ onClose }: { onClose: () => void }) {
           <PinInput label="New PIN" value={next} onChange={setNext} />
           <PinInput label="Confirm new PIN" value={confirm} onChange={setConfirm} />
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button type="submit" disabled={loading || current.length < 4 || next.length < 4} className="w-full py-3 rounded-xl bg-forest text-white font-medium disabled:opacity-50">
+          <button type="submit" disabled={loading || current.length < 4 || next.length < 4} className="w-full py-3 rounded-xl bg-forest-600 text-white font-medium disabled:opacity-50">
             {loading ? 'Updating…' : 'Update PIN'}
           </button>
         </form>
@@ -205,7 +205,7 @@ function Sheet({ title, children, onClose }: { title: string; children: React.Re
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white dark:bg-forest-900 rounded-t-3xl p-6">
-        <h2 className="font-semibold text-forest dark:text-parchment mb-4">{title}</h2>
+        <h2 className="font-semibold text-forest-600 dark:text-parchment-100 mb-4">{title}</h2>
         {children}
       </div>
     </div>

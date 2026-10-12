@@ -60,8 +60,8 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment dark:bg-forest-950 flex flex-col pb-20">
-      <header className="sticky top-0 z-10 bg-forest px-4 py-4">
+    <div className="min-h-screen bg-parchment-100 dark:bg-forest-900 flex flex-col pb-20">
+      <header className="sticky top-0 z-10 bg-forest-600px-4 py-4">
         <div className="flex items-center justify-between">
           {selected ? (
             <button onClick={() => setSelected(null)} className="text-white/70 text-sm">← Back</button>
@@ -80,7 +80,7 @@ export default function AccountsPage() {
         {selected && (
           <div className="mt-1">
             <p className="text-white font-semibold">{selected.name}</p>
-            <p className="text-amber font-bold text-xl">{formatUGX(selected.balance)}</p>
+            <p className="text-amber-500 font-bold text-xl">{formatUGX(selected.balance)}</p>
           </div>
         )}
       </header>
@@ -101,10 +101,10 @@ export default function AccountsPage() {
                   {acct.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-forest dark:text-parchment truncate">{acct.name}</p>
+                  <p className="font-medium text-forest-600 dark:text-parchment-100 truncate">{acct.name}</p>
                   <p className="text-xs text-gray-500">{TYPE_LABELS[acct.type] ?? acct.type}</p>
                 </div>
-                <p className="font-semibold text-forest dark:text-amber text-sm">{formatUGX(acct.balance)}</p>
+                <p className="font-semibold text-forest-600 dark:text-amber-500-500 text-sm">{formatUGX(acct.balance)}</p>
               </button>
             ))}
             {accounts.length === 0 && (
@@ -127,7 +127,7 @@ export default function AccountsPage() {
                   className="bg-white dark:bg-forest-900 rounded-xl p-3 flex items-center justify-between"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-forest dark:text-parchment truncate">{tx.description}</p>
+                    <p className="text-sm font-medium text-forest-600 dark:text-parchment-100 truncate">{tx.description}</p>
                     <p className="text-xs text-gray-400">{tx.category?.name ?? tx.type}</p>
                   </div>
                   <p
@@ -143,7 +143,7 @@ export default function AccountsPage() {
             {txns.length === 10 && (
               <Link
                 to={`/transactions?accountId=${selected.id}`}
-                className="block text-center text-sm text-amber mt-4"
+                className="block text-center text-sm text-amber-500 mt-4"
               >
                 View all transactions →
               </Link>
@@ -181,7 +181,7 @@ function AddAccountSheet({ onClose, onAdded }: { onClose: () => void; onAdded: (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <form onSubmit={submit} className="relative bg-white dark:bg-forest-900 rounded-t-3xl p-6 space-y-4">
-        <h2 className="font-semibold text-forest dark:text-parchment">New Account</h2>
+        <h2 className="font-semibold text-forest-600 dark:text-parchment-100">New Account</h2>
         <input
           className="w-full border border-gray-200 dark:border-forest-700 rounded-xl px-4 py-3 bg-transparent text-sm"
           placeholder="Account name"
@@ -205,7 +205,7 @@ function AddAccountSheet({ onClose, onAdded }: { onClose: () => void; onAdded: (
         <button
           type="submit"
           disabled={loading || !name}
-          className="w-full py-3 rounded-xl bg-forest text-white font-medium disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-forest-600text-white font-medium disabled:opacity-50"
         >
           {loading ? 'Adding…' : 'Add Account'}
         </button>

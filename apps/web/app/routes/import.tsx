@@ -54,8 +54,8 @@ function ImportCard({
   }
 
   return (
-    <div className="bg-white dark:bg-forest-900 rounded-2xl p-5 shadow-sm border border-parchment dark:border-forest-700">
-      <h2 className="font-semibold text-forest dark:text-parchment mb-1">{title}</h2>
+    <div className="bg-white dark:bg-forest-900 rounded-2xl p-5 shadow-sm border border-parchment-200 dark:border-forest-700">
+      <h2 className="font-semibold text-forest-600 dark:text-parchment-100 mb-1">{title}</h2>
       <p className="text-xs text-gray-500 mb-4">{hint}</p>
 
       <div
@@ -75,7 +75,7 @@ function ImportCard({
           onChange={(e) => onFile(e.target.files?.[0] ?? null)}
         />
         {state.file ? (
-          <p className="text-sm font-medium text-forest dark:text-parchment truncate">{state.file.name}</p>
+          <p className="text-sm font-medium text-forest-600 dark:text-parchment-100 truncate">{state.file.name}</p>
         ) : (
           <p className="text-sm text-gray-400">Tap to select or drag &amp; drop</p>
         )}
@@ -85,7 +85,7 @@ function ImportCard({
         <button
           onClick={upload}
           disabled={state.loading}
-          className="mt-3 w-full py-3 rounded-xl bg-forest text-white text-sm font-medium disabled:opacity-50"
+          className="mt-3 w-full py-3 rounded-xl bg-forest-600 text-white text-sm font-medium disabled:opacity-50"
         >
           {state.loading ? 'Importing…' : 'Import'}
         </button>
@@ -116,8 +116,8 @@ function ImportCard({
 
 export default function ImportPage() {
   return (
-    <div className="min-h-screen bg-parchment dark:bg-forest-950 flex flex-col pb-20">
-      <header className="sticky top-0 z-10 bg-forest px-4 py-4">
+    <div className="min-h-screen bg-parchment-100 dark:bg-forest-900 flex flex-col pb-20">
+      <header className="sticky top-0 z-10 bg-forest-600 px-4 py-4">
         <div className="flex items-center gap-3">
           <Link to="/settings" className="text-white/70 text-sm">←</Link>
           <h1 className="text-white font-semibold">Import Statements</h1>
