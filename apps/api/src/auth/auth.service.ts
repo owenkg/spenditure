@@ -123,10 +123,13 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash } });
 
     const isProd = this.config.get('NODE_ENV') === 'production';
+    // Cross-origin (spenditure.onrender.com → spenditure-api.onrender.com): onrender.com is
+    // on the Public Suffix List so they are treated as different sites. SameSite=None;Secure
+    // is required for cookies to be sent on cross-site requests in production.
     const cookieOpts = {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict' as const,
+      sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
       path: '/',
     };
     res.cookie('access_token', accessToken, { ...cookieOpts, maxAge: 15 * 60 * 1000 });
@@ -140,7 +143,9 @@ export class AuthService {
   }
 
   private clearCookies(res: Response) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    const isProd = this.config.get('NODE_ENV') === 'production';
+    const opts = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax', path: '/' };
+    res.clearCookie('access_token', opts);
+    res.clearCookie('refresh_token', opts);
   }
 }
