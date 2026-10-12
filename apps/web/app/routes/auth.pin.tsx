@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from '@remix-run/react';
-import { api, ApiError, setAuthenticated } from '~/lib/api';
+import { api, ApiError, storeTokens } from '~/lib/api';
 
 type Mode = 'loading' | 'setup' | 'login';
 
@@ -116,8 +116,8 @@ export default function PinPage() {
     try {
       const endpoint = mode === 'setup' ? '/api/v1/auth/setup' : '/api/v1/auth/login';
       const body = mode === 'setup' ? { name: name.trim(), pin: pinStr } : { pin: pinStr };
-      await api.post(endpoint, body);
-      setAuthenticated(true);
+      const result = await api.post<{ accessToken: string; refreshToken: string }>(endpoint, body);
+      storeTokens(result.accessToken, result.refreshToken);
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof ApiError) {
