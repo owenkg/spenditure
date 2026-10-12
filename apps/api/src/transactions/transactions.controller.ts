@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -19,6 +20,7 @@ import { QueryTransactionsDto } from './dto/query-transactions.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser, type JwtPayload } from '../auth/decorators/current-user.decorator';
 
+@ApiTags('Transactions')
 @UseGuards(JwtAuthGuard)
 @Controller({ version: '1', path: 'transactions' })
 export class TransactionsController {
@@ -52,6 +54,23 @@ export class TransactionsController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a transaction' })
+  @ApiBody({
+    examples: {
+      expense: {
+        summary: 'Expense',
+        value: { accountId: '<account-id>', categoryId: '<category-id>', type: 'EXPENSE', amount: 50000, description: 'Lunch', date: '2026-10-12T12:00:00.000Z' },
+      },
+      income: {
+        summary: 'Income',
+        value: { accountId: '<account-id>', type: 'INCOME', amount: 3840000, description: 'Salary', date: '2026-10-01T08:00:00.000Z' },
+      },
+      transfer: {
+        summary: 'Transfer',
+        value: { accountId: '<from-account-id>', toAccountId: '<to-account-id>', type: 'TRANSFER', amount: 200000, description: 'Move to savings', date: '2026-10-12T10:00:00.000Z' },
+      },
+    },
+  })
   create(@CurrentUser() user: JwtPayload, @Body() dto: CreateTransactionDto) {
     return this.transactionsService.create(user.sub, dto);
   }
