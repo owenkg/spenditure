@@ -121,16 +121,14 @@ export class ImportService {
       }
     }
 
-    // Recalculate balance for every affected account
+    // Recalculate balance for every affected account (income - expense)
     for (const accountId of affectedAccountIds) {
-      const agg = await this.prisma.transaction.aggregate({
-        where: { accountId, userId },
-        _sum: { amount: true },
-      });
-      await this.prisma.account.update({
-        where: { id: accountId },
-        data: { balance: agg._sum.amount ?? 0 },
-      });
+      const [income, expense] = await Promise.all([
+        this.prisma.transaction.aggregate({ where: { accountId, userId, type: 'INCOME' }, _sum: { amount: true } }),
+        this.prisma.transaction.aggregate({ where: { accountId, userId, type: 'EXPENSE' }, _sum: { amount: true } }),
+      ]);
+      const balance = Number(income._sum.amount ?? 0) - Number(expense._sum.amount ?? 0);
+      await this.prisma.account.update({ where: { id: accountId }, data: { balance } });
     }
 
     return { imported, skipped, errors };
@@ -182,16 +180,14 @@ export class ImportService {
       }
     }
 
-    // Recalculate account balance after bulk import
+    // Recalculate account balance after bulk import (income - expense)
     if (imported > 0) {
-      const agg = await this.prisma.transaction.aggregate({
-        where: { accountId, userId },
-        _sum: { amount: true },
-      });
-      await this.prisma.account.update({
-        where: { id: accountId },
-        data: { balance: agg._sum.amount ?? 0 },
-      });
+      const [income, expense] = await Promise.all([
+        this.prisma.transaction.aggregate({ where: { accountId, userId, type: 'INCOME' }, _sum: { amount: true } }),
+        this.prisma.transaction.aggregate({ where: { accountId, userId, type: 'EXPENSE' }, _sum: { amount: true } }),
+      ]);
+      const balance = Number(income._sum.amount ?? 0) - Number(expense._sum.amount ?? 0);
+      await this.prisma.account.update({ where: { id: accountId }, data: { balance } });
     }
 
     return { imported, skipped, errors };

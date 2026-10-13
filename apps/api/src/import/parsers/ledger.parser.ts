@@ -30,9 +30,13 @@ const MODE_MAP: Record<string, LedgerAccountType> = {
 
 function parseOrdinalDay(raw: unknown): number | null {
   if (raw == null) return null;
-  const s = String(raw).trim().replace(/[a-z]+$/i, '');
-  const n = parseInt(s, 10);
-  return isNaN(n) ? null : n;
+  const s = String(raw).trim();
+  // ISO format "YYYY-MM-DD" — extract the day from the last segment
+  const iso = s.match(/^\d{4}-\d{2}-(\d{2})\s*$/);
+  if (iso) return parseInt(iso[1], 10);
+  // Ordinal format "17th", "1st", "22nd" — strip trailing suffix letters
+  const ord = s.match(/^(\d+)/);
+  return ord ? parseInt(ord[1], 10) : null;
 }
 
 function parseSheetDate(sheetName: string): { month: number; year: number } | null {
