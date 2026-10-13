@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseDfcuPdf } from './parsers/dfcu.parser';
-import { parseMomoEml } from './parsers/momo.parser';
+import { parseMomoXlsx } from './parsers/momo.parser';
 import { parseLedgerXlsx, type LedgerAccountType } from './parsers/ledger.parser';
 import { buildLedgerTemplate } from './parsers/ledger-template';
 import type { ImportResult } from './dto/import-result.dto';
@@ -26,8 +26,8 @@ export class ImportService {
 
   async importMomo(userId: string, file: Express.Multer.File): Promise<ImportResult> {
     const name = file.originalname.toLowerCase();
-    if (!name.endsWith('.eml') && !file.mimetype.includes('message') && !file.mimetype.includes('text')) {
-      throw new BadRequestException('Only EML files are accepted for MoMo import');
+    if (!name.endsWith('.xlsx') && !file.mimetype.includes('spreadsheet') && !file.mimetype.includes('excel')) {
+      throw new BadRequestException('Only .xlsx files are accepted for MoMo import');
     }
 
     const account = await this.prisma.account.findFirst({
@@ -35,7 +35,7 @@ export class ImportService {
     });
     if (!account) throw new BadRequestException('No mobile money account found. Add an MTN MoMo account first.');
 
-    const transactions = await parseMomoEml(file.buffer);
+    const transactions = await parseMomoXlsx(file.buffer);
     return this.upsertTransactions(userId, account.id, transactions);
   }
 

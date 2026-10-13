@@ -148,9 +148,9 @@ export default function ImportPage() {
         />
         <ImportCard
           title="MTN Mobile Money Statement"
-          accept=".eml,message/rfc822,text/plain"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           endpoint="/v1/import/momo"
-          hint="Forward the MoMo statement email from MoMoStatement@mtn.com and save it as .eml, then import."
+          hint="Export your MoMo statement as Excel (.xlsx) from the MTN MoMo app or website and import it here."
         />
         <ImportCard
           title="Personal Ledger Spreadsheet"

@@ -1,4 +1,4 @@
-import { simpleParser } from 'mailparser';
+import ExcelJS from 'exceljs';
 
 export interface ParsedTransaction {
   date: Date;
@@ -6,78 +6,74 @@ export interface ParsedTransaction {
   amount: number;
   type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   externalRef: string;
-  importSource: 'MOMO_EML';
+  importSource: 'MOMO_XLSX';
 }
 
-function sanitize(s: string): string {
-  return s.replace(/<[^>]*>/g, '').trim();
-}
+const OWNER = 'GEORGE OWEN KIVUMBI';
+const DFCU_FROM = 'DFCU BANK LIMITED KIVUMBI';
 
-function extractTableRows(html: string): string[][] {
-  const rows: string[][] = [];
-  const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const tdRe = /<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi;
+export async function parseMomoXlsx(buffer: Buffer): Promise<ParsedTransaction[]> {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buffer as unknown as Parameters<typeof wb.xlsx.load>[0]);
 
-  let trMatch: RegExpExecArray | null;
-  while ((trMatch = trRe.exec(html)) !== null) {
-    const cells: string[] = [];
-    let tdMatch: RegExpExecArray | null;
-    const tdReg = new RegExp(tdRe.source, 'gi');
-    while ((tdMatch = tdReg.exec(trMatch[1])) !== null) {
-      cells.push(sanitize(tdMatch[1]));
-    }
-    if (cells.length >= 7) rows.push(cells);
-  }
+  const ws = wb.worksheets[0];
+  if (!ws) return [];
 
-  return rows;
-}
-
-export async function parseMomoEml(buffer: Buffer): Promise<ParsedTransaction[]> {
-  const parsed = await simpleParser(buffer);
-  const html = parsed.html || '';
-  if (!html) return [];
-
-  const rows = extractTableRows(html);
   const results: ParsedTransaction[] = [];
 
-  for (const row of rows) {
-    // Columns: Date(0) / TxID(1) / Type(2) / Description(3) / From(4) / To(5) / Amount(6) / Fees(7) / Balance(8)
-    const [dateStr, txId, , rawDesc, , toField, rawAmount] = row;
+  ws.eachRow((row, n) => {
+    if (n === 1) return; // skip header
 
-    if (!txId || txId.toLowerCase() === 'txid' || txId.toLowerCase() === 'transaction id') continue;
+    const dateRaw = row.getCell(1).value;
+    const txId = row.getCell(2).value;
+    const txType = String(row.getCell(3).value ?? '').trim();
+    const desc = String(row.getCell(4).value ?? '').trim();
+    const from = String(row.getCell(5).value ?? '').trim();
+    const to = String(row.getCell(6).value ?? '').trim();
+    const amountRaw = row.getCell(7).value;
 
-    const rawAmt = rawAmount ?? '';
-    const numericStr = rawAmt.replace(/UGX\s*/i, '').replace(/,/g, '').trim();
-    const signed = parseFloat(numericStr);
-    if (isNaN(signed)) continue;
+    if (!txId || !amountRaw) return;
 
-    const amount = Math.abs(signed);
-    const description = sanitize(rawDesc);
+    const amount = typeof amountRaw === 'number' ? amountRaw : parseFloat(String(amountRaw).replace(/,/g, ''));
+    if (isNaN(amount) || amount <= 0) return;
 
-    let type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
-    if (/transfer/i.test(description) && toField && toField.trim().length > 0) {
-      type = 'TRANSFER';
-    } else if (signed > 0) {
+    // Skip B2W transfers (bank→wallet) — already captured in DFCU import
+    if (from === DFCU_FROM) return;
+
+    let type: 'INCOME' | 'EXPENSE';
+    if (to === OWNER) {
       type = 'INCOME';
-    } else {
+    } else if (from === OWNER) {
       type = 'EXPENSE';
+    } else {
+      return; // unrecognised party, skip
     }
 
-    // Parse date (format: DD/MM/YYYY HH:mm or DD-MM-YYYY)
-    const dateParts = dateStr.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
-    const date = dateParts
-      ? new Date(`${dateParts[3]}-${dateParts[2]}-${dateParts[1]}T00:00:00Z`)
-      : new Date();
+    // Build a readable description
+    const counterparty = type === 'INCOME' ? from : to;
+    const label = desc && desc !== String(txId) ? desc : txType;
+    const description = counterparty && counterparty !== OWNER
+      ? `${label} - ${counterparty}`
+      : label;
+
+    // Parse ISO date string or ExcelJS Date object
+    let date: Date;
+    if (dateRaw instanceof Date) {
+      date = dateRaw;
+    } else {
+      date = new Date(String(dateRaw));
+      if (isNaN(date.getTime())) date = new Date();
+    }
 
     results.push({
       date,
       description,
       amount,
       type,
-      externalRef: txId.trim(),
-      importSource: 'MOMO_EML',
+      externalRef: `momo:${String(txId).trim()}`,
+      importSource: 'MOMO_XLSX',
     });
-  }
+  });
 
   return results;
 }
