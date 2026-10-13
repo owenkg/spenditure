@@ -21,6 +21,7 @@ export class SettingsService {
     if (!valid) throw new ForbiddenException('Invalid PIN');
 
     await this.prisma.transaction.deleteMany({ where: { userId } });
+    await this.prisma.account.updateMany({ where: { userId }, data: { balance: 0 } });
     return { cleared: true };
   }
 
