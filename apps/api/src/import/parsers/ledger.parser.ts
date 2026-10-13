@@ -46,7 +46,8 @@ function parseSheetDate(sheetName: string): { month: number; year: number } | nu
 
 export async function parseLedgerXlsx(buffer: Buffer): Promise<ParsedLedgerRow[]> {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  // Buffer generic mismatch between Node types and ExcelJS typings
+  await wb.xlsx.load(buffer as unknown as Parameters<typeof wb.xlsx.load>[0]);
 
   const rows: ParsedLedgerRow[] = [];
 
