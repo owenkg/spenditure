@@ -36,6 +36,12 @@ interface Transaction {
   category?: { name: string; icon: string; color: string } | null;
 }
 
+interface Summary {
+  totalIncome: number;
+  totalExpenses: number;
+  netFlow: number;
+}
+
 type TxType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
 function getMonthBounds(year: number, month: number) {
@@ -72,39 +78,86 @@ export default function Transactions() {
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [filter, setFilter] = useState<TxType>('ALL');
+  const [accountFilter, setAccountFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
   const [viewDate, setViewDate] = useState(new Date());
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
 
-  // Pull-to-refresh
-  const touchStartY = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const monthLabel = viewDate.toLocaleDateString('en-UG', { month: 'long', year: 'numeric' });
 
-  const load = useCallback(() => {
+  const buildTxParams = useCallback((cursor?: string) => {
     const { from, to } = getMonthBounds(viewDate.getFullYear(), viewDate.getMonth());
-    const params = new URLSearchParams({ limit: '100', dateFrom: from, dateTo: to });
-    if (filter !== 'ALL') params.set('type', filter);
-    if (search) params.set('search', search);
+    const p = new URLSearchParams({ limit: '100', dateFrom: from, dateTo: to });
+    if (filter !== 'ALL') p.set('type', filter);
+    if (accountFilter !== 'ALL') p.set('accountId', accountFilter);
+    if (search) p.set('search', search);
+    if (cursor) p.set('cursor', cursor);
+    return p.toString();
+  }, [viewDate, filter, accountFilter, search]);
 
+  const buildSummaryParams = useCallback(() => {
+    const { from, to } = getMonthBounds(viewDate.getFullYear(), viewDate.getMonth());
+    const p = new URLSearchParams({ dateFrom: from, dateTo: to });
+    if (accountFilter !== 'ALL') p.set('accountId', accountFilter);
+    if (filter !== 'ALL') p.set('type', filter);
+    return p.toString();
+  }, [viewDate, filter, accountFilter]);
+
+  const load = useCallback(() => {
     setLoading(true);
+    setTxns([]);
+    setNextCursor(null);
+
     Promise.all([
-      api.get<unknown>(`/api/v1/transactions?${params}`),
+      api.get<unknown>(`/api/v1/transactions?${buildTxParams()}`),
       api.get<unknown>('/api/v1/accounts'),
       api.get<unknown>('/api/v1/categories'),
+      api.get<unknown>(`/api/v1/transactions/summary?${buildSummaryParams()}`),
     ])
-      .then(([txRaw, accsRaw, catsRaw]) => {
-        const txEnv = txRaw as { data?: Transaction[] };
-        setTxns(txEnv.data ?? (txRaw as Transaction[]));
+      .then(([txRaw, accsRaw, catsRaw, sumRaw]) => {
+        const env = txRaw as { data?: Transaction[]; nextCursor?: string | null; total?: number };
+        setTxns(env.data ?? []);
+        setNextCursor(env.nextCursor ?? null);
+        setTotal(env.total ?? 0);
         setAccounts(accsRaw as Account[]);
         setCategories(catsRaw as Category[]);
+        setSummary(sumRaw as Summary);
       })
       .catch(() => navigate('/auth/pin'))
       .finally(() => setLoading(false));
-  }, [navigate, viewDate, filter, search]);
+  }, [navigate, buildTxParams, buildSummaryParams]);
+
+  const loadMore = useCallback(() => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    api.get<unknown>(`/api/v1/transactions?${buildTxParams(nextCursor)}`)
+      .then((raw) => {
+        const env = raw as { data?: Transaction[]; nextCursor?: string | null };
+        setTxns((prev) => [...prev, ...(env.data ?? [])]);
+        setNextCursor(env.nextCursor ?? null);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  }, [nextCursor, loadingMore, buildTxParams]);
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: '200px' },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loadMore]);
 
   useEffect(() => {
     if (!isAuthenticated()) { navigate('/auth/pin'); return; }
@@ -114,20 +167,13 @@ export default function Transactions() {
   const prevMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
   const nextMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const delta = e.changedTouches[0].clientY - touchStartY.current;
-    if (delta > 60 && containerRef.current?.scrollTop === 0) load();
-  };
-
   const grouped = groupByDate(txns);
 
   return (
     <div className="min-h-screen bg-parchment-100 dark:bg-forest-800 flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-parchment-100/90 dark:bg-forest-800/90 backdrop-blur-sm border-b border-parchment-200 dark:border-forest-700 px-4 py-3 space-y-3">
+        {/* Month nav */}
         <div className="flex items-center justify-between">
           <h1 className="text-base font-bold text-forest-600 dark:text-amber-400">Transactions</h1>
           <div className="flex items-center gap-2">
@@ -164,6 +210,35 @@ export default function Transactions() {
           ))}
         </div>
 
+        {/* Account filter */}
+        {accounts.length > 1 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+            <button
+              onClick={() => setAccountFilter('ALL')}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                accountFilter === 'ALL'
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-parchment-200 dark:bg-forest-700 text-forest-400 dark:text-parchment-400'
+              }`}
+            >
+              All Accounts
+            </button>
+            {accounts.map((acc) => (
+              <button
+                key={acc.id}
+                onClick={() => setAccountFilter(acc.id)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  accountFilter === acc.id
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-parchment-200 dark:bg-forest-700 text-forest-400 dark:text-parchment-400'
+                }`}
+              >
+                {acc.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Search */}
         <input
           type="search"
@@ -173,15 +248,29 @@ export default function Transactions() {
           className="w-full rounded-xl border border-parchment-200 dark:border-forest-600 bg-white dark:bg-forest-700 px-4 py-2 text-sm text-forest-600 dark:text-parchment-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
           style={{ fontSize: '16px' }}
         />
+
+        {/* Summary bar */}
+        {summary && (filter === 'ALL' || filter === 'INCOME' || filter === 'EXPENSE') && (
+          <div className="flex gap-3 pt-0.5">
+            {filter !== 'EXPENSE' && (
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                In: {formatCurrency(summary.totalIncome, 'UGX')}
+              </span>
+            )}
+            {filter !== 'INCOME' && (
+              <span className="text-xs font-medium text-red-500 tabular-nums">
+                Out: {formatCurrency(summary.totalExpenses, 'UGX')}
+              </span>
+            )}
+            <span className="text-xs text-forest-400 dark:text-parchment-400 ml-auto tabular-nums">
+              {txns.length}{total > txns.length ? ` of ${total}` : ''} txns
+            </span>
+          </div>
+        )}
       </header>
 
       {/* List */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto pb-20"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="flex-1 overflow-y-auto pb-20">
         {loading ? (
           <div className="flex justify-center items-center py-16">
             <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
@@ -191,59 +280,79 @@ export default function Transactions() {
             No transactions for {monthLabel}.
           </p>
         ) : (
-          grouped.map(({ label, items }) => (
-            <section key={label}>
-              <div className="px-4 pt-4 pb-1">
-                <span className="text-xs font-semibold text-forest-400 dark:text-parchment-400 uppercase tracking-wider">
-                  {label}
-                </span>
-              </div>
-              <ul className="bg-white dark:bg-forest-700 mx-4 rounded-xl overflow-hidden border border-parchment-200 dark:border-forest-600 divide-y divide-parchment-100 dark:divide-forest-600">
-                {items.map((tx) => (
-                  <li key={tx.id} className="flex items-center gap-3 px-4 py-3">
-                    <span
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                      style={{
-                        backgroundColor: (tx.category?.color ?? '#6B7280') + '22',
-                        color: tx.category?.color ?? '#6B7280',
-                      }}
-                    >
-                      {tx.category?.icon ?? (tx.type === 'TRANSFER' ? '⇄' : tx.type === 'INCOME' ? '↑' : '↓')}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-forest-600 dark:text-parchment-100 truncate">
-                        {tx.description}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        {tx.account && (
-                          <span className="text-xs text-forest-400 dark:text-parchment-400 bg-parchment-100 dark:bg-forest-600 px-1.5 py-0.5 rounded-full truncate max-w-[100px]">
-                            {tx.account.name}
-                          </span>
-                        )}
-                        {tx.category && (
-                          <span className="text-xs text-forest-400 dark:text-parchment-400 truncate">
-                            {tx.category.name}
-                          </span>
-                        )}
+          <>
+            {grouped.map(({ label, items }) => (
+              <section key={label}>
+                <div className="px-4 pt-4 pb-1 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-forest-400 dark:text-parchment-400 uppercase tracking-wider">
+                    {label}
+                  </span>
+                  <span className="text-xs text-forest-400 dark:text-parchment-400 tabular-nums">
+                    {items.length} txn{items.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <ul className="bg-white dark:bg-forest-700 mx-4 rounded-xl overflow-hidden border border-parchment-200 dark:border-forest-600 divide-y divide-parchment-100 dark:divide-forest-600">
+                  {items.map((tx) => (
+                    <li key={tx.id} className="flex items-center gap-3 px-4 py-3">
+                      <span
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0"
+                        style={{
+                          backgroundColor: (tx.category?.color ?? '#6B7280') + '22',
+                          color: tx.category?.color ?? '#6B7280',
+                        }}
+                      >
+                        {tx.category?.icon ?? (tx.type === 'TRANSFER' ? '⇄' : tx.type === 'INCOME' ? '↑' : '↓')}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-forest-600 dark:text-parchment-100 truncate">
+                          {tx.description}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {tx.account && (
+                            <span className="text-xs text-forest-400 dark:text-parchment-400 bg-parchment-100 dark:bg-forest-600 px-1.5 py-0.5 rounded-full truncate max-w-[100px]">
+                              {tx.account.name}
+                            </span>
+                          )}
+                          {tx.category && (
+                            <span className="text-xs text-forest-400 dark:text-parchment-400 truncate">
+                              {tx.category.name}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <p
-                      className={`text-sm font-semibold tabular-nums flex-shrink-0 ${
-                        tx.type === 'INCOME'
-                          ? 'text-green-600'
-                          : tx.type === 'TRANSFER'
-                          ? 'text-blue-500'
-                          : 'text-red-500'
-                      }`}
-                    >
-                      {tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '⇄' : '−'}
-                      {formatCurrency(tx.amount, 'UGX')}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))
+                      <p
+                        className={`text-sm font-semibold tabular-nums flex-shrink-0 ${
+                          tx.type === 'INCOME'
+                            ? 'text-green-600'
+                            : tx.type === 'TRANSFER'
+                            ? 'text-blue-500'
+                            : 'text-red-500'
+                        }`}
+                      >
+                        {tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '⇄' : '−'}
+                        {formatCurrency(tx.amount, 'UGX')}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="h-4" />
+
+            {loadingMore && (
+              <div className="flex justify-center py-4">
+                <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!nextCursor && txns.length > 0 && (
+              <p className="text-center text-xs text-forest-400 dark:text-parchment-400 py-4">
+                All {txns.length} transactions loaded
+              </p>
+            )}
+          </>
         )}
       </div>
 

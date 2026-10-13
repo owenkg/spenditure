@@ -39,8 +39,10 @@ export class TransactionsController {
     @CurrentUser() user: JwtPayload,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
+    @Query('accountId') accountId?: string,
+    @Query('type') type?: string,
   ) {
-    return this.transactionsService.getSummary(user.sub, dateFrom, dateTo);
+    return this.transactionsService.getSummary(user.sub, dateFrom, dateTo, accountId, type);
   }
 
   @Get()

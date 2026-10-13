@@ -93,30 +93,24 @@ export class TransactionsService {
     if (tx.toAccountId) await this.accounts.recalculateBalance(tx.toAccountId);
   }
 
-  async getSummary(userId: string, dateFrom?: string, dateTo?: string) {
+  async getSummary(userId: string, dateFrom?: string, dateTo?: string, accountId?: string, type?: string) {
     const dateFilter = {
       ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
       ...(dateTo ? { lte: new Date(dateTo) } : {}),
     };
-    const where = {
+    const baseWhere = {
       userId,
       ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
+      ...(accountId ? { accountId } : {}),
     };
 
-    const [incomeAgg, expenseAgg, byCategory] = await Promise.all([
-      this.prisma.transaction.aggregate({
-        where: { ...where, type: 'INCOME' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { ...where, type: 'EXPENSE' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.groupBy({
-        by: ['categoryId', 'type'],
-        where: { ...where, type: { in: ['INCOME', 'EXPENSE'] } },
-        _sum: { amount: true },
-      }),
+    const [incomeAgg, expenseAgg] = await Promise.all([
+      type === 'EXPENSE'
+        ? Promise.resolve({ _sum: { amount: null } })
+        : this.prisma.transaction.aggregate({ where: { ...baseWhere, type: 'INCOME' }, _sum: { amount: true } }),
+      type === 'INCOME'
+        ? Promise.resolve({ _sum: { amount: null } })
+        : this.prisma.transaction.aggregate({ where: { ...baseWhere, type: 'EXPENSE' }, _sum: { amount: true } }),
     ]);
 
     const totalIncome = incomeAgg._sum.amount?.toNumber() ?? 0;
@@ -126,11 +120,6 @@ export class TransactionsService {
       totalIncome,
       totalExpenses,
       netFlow: totalIncome - totalExpenses,
-      byCategory: byCategory.map((g) => ({
-        categoryId: g.categoryId,
-        type: g.type,
-        total: g._sum.amount?.toNumber() ?? 0,
-      })),
     };
   }
 
