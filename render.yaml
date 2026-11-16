@@ -7,7 +7,7 @@ services:
     plan: starter
     rootDir: apps/api
     buildCommand: pnpm install --frozen-lockfile; pnpm run build
-    startCommand: npx prisma migrate resolve --rolled-back 20261116091206_add_account_to_audit 2>/dev/null; npx prisma migrate deploy && node dist/main
+    startCommand: sh scripts/start.sh
     healthCheckPath: /api/health
     autoDeploy: true
     buildFilter:
