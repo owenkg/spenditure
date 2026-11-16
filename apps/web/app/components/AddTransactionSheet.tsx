@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '~/lib/api';
+import { IconX, IconTransfer } from './Icons';
 
 interface Account {
   id: string;
@@ -98,7 +99,7 @@ export function AddTransactionSheet({ accounts, categories, onClose, onSuccess }
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-forest-400 dark:text-parchment-400 hover:bg-parchment-100 dark:hover:bg-forest-700"
           >
-            ✕
+            <IconX size={16} />
           </button>
         </div>
 
@@ -120,7 +121,7 @@ export function AddTransactionSheet({ accounts, categories, onClose, onSuccess }
                     : 'text-forest-400 dark:text-parchment-400 hover:bg-parchment-100 dark:hover:bg-forest-700'
                 }`}
               >
-                {t === 'INCOME' ? '+ Income' : t === 'EXPENSE' ? '− Expense' : '⇄ Transfer'}
+                {t === 'INCOME' ? '+ Income' : t === 'EXPENSE' ? '− Expense' : <span className="flex items-center justify-center gap-1"><IconTransfer size={13} /> Transfer</span>}
               </button>
             ))}
           </div>

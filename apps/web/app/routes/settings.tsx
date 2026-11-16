@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '@remix-run/react';
 import type { MetaFunction } from '@remix-run/react';
-import { isAuthenticated, logout, api } from '~/lib/api';
+import { isAuthenticated, logout, api, getAccessToken } from '~/lib/api';
 import { BottomNav } from '~/components/BottomNav';
+import { IconDownload, IconLogOut } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Settings — Spenditure' }];
 
@@ -27,8 +28,27 @@ export default function SettingsPage() {
     navigate('/auth/pin');
   }
 
-  function exportDownload(format: 'csv' | 'excel') {
-    window.location.href = `${BASE}/api/v1/export/${format === 'csv' ? 'csv' : 'excel'}`;
+  async function exportDownload(format: 'csv' | 'excel') {
+    const token = getAccessToken();
+    const path = format === 'csv' ? 'csv' : 'excel';
+    const filename = format === 'csv' ? 'spenditure-export.csv' : 'spenditure-export.xlsx';
+    try {
+      const res = await fetch(`${BASE}/api/v1/export/${path}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent — network errors handled by user retry
+    }
   }
 
   return (
@@ -58,11 +78,13 @@ export default function SettingsPage() {
 
         {/* Export */}
         <Section title="Export">
-          <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
+          <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100 flex items-center gap-2">
+            <IconDownload size={16} className="text-forest-400 dark:text-parchment-400 flex-shrink-0" />
             Export as CSV
           </button>
           <div className="border-t border-parchment-200 dark:border-forest-700" />
-          <button onClick={() => exportDownload('excel')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
+          <button onClick={() => exportDownload('excel')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100 flex items-center gap-2">
+            <IconDownload size={16} className="text-forest-400 dark:text-parchment-400 flex-shrink-0" />
             Export as Excel (.xlsx)
           </button>
         </Section>
@@ -84,8 +106,9 @@ export default function SettingsPage() {
           <div className="border-t border-parchment-200 dark:border-forest-700" />
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-3 text-sm text-red-400"
+            className="w-full text-left px-4 py-3 text-sm text-red-400 flex items-center gap-2"
           >
+            <IconLogOut size={16} className="flex-shrink-0" />
             Sign out
           </button>
         </Section>
@@ -94,7 +117,7 @@ export default function SettingsPage() {
       {showPin && <ChangePinSheet onClose={() => setShowPin(false)} />}
       {showClear && <ClearDataSheet onClose={() => setShowClear(false)} />}
 
-      <BottomNav current="settings" />
+      <BottomNav current="/settings" />
     </div>
   );
 }

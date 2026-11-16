@@ -4,6 +4,7 @@ import type { MetaFunction } from '@remix-run/react';
 import { api, ApiError, isAuthenticated } from '~/lib/api';
 import { formatCurrency } from '@spenditure/utils';
 import { BottomNav } from '~/components/BottomNav';
+import { IconRepeat, IconX } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Recurring — Spenditure' }];
 
@@ -120,7 +121,7 @@ export default function RecurringPage() {
         <div className="px-4 pt-4 space-y-3">
           {items.length === 0 && !showForm && (
             <div className="text-center py-16 text-forest-400 dark:text-parchment-500">
-              <p className="text-4xl mb-3">↻</p>
+              <div className="flex justify-center mb-3"><IconRepeat size={36} /></div>
               <p className="text-sm">No recurring transactions yet.</p>
               <p className="text-xs mt-1">Tap + to schedule salary, rent, subscriptions…</p>
             </div>
@@ -170,7 +171,7 @@ export default function RecurringPage() {
           <div className="bg-parchment-100 dark:bg-forest-800 rounded-t-3xl px-4 pt-4 pb-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-forest-600 dark:text-parchment-100">New Recurring</h2>
-              <button onClick={() => setShowForm(false)} className="text-forest-400 dark:text-parchment-400 text-xl">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-forest-400 dark:text-parchment-400"><IconX size={18} /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">

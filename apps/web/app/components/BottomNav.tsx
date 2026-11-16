@@ -1,11 +1,12 @@
 import { useNavigate } from '@remix-run/react';
+import { IconHome, IconArrowsUpDown, IconRepeat, IconWallet, IconSettings } from './Icons';
 
 const NAV_ITEMS = [
-  { label: 'Home', icon: '⊞', path: '/dashboard' },
-  { label: 'Txns', icon: '↕', path: '/transactions' },
-  { label: 'Recurring', icon: '↻', path: '/recurring' },
-  { label: 'Accounts', icon: '🗂', path: '/accounts' },
-  { label: 'Settings', icon: '⚙', path: '/settings' },
+  { label: 'Home', Icon: IconHome, path: '/dashboard' },
+  { label: 'Txns', Icon: IconArrowsUpDown, path: '/transactions' },
+  { label: 'Recurring', Icon: IconRepeat, path: '/recurring' },
+  { label: 'Accounts', Icon: IconWallet, path: '/accounts' },
+  { label: 'Settings', Icon: IconSettings, path: '/settings' },
 ];
 
 export function BottomNav({ current }: { current: string }) {
@@ -24,7 +25,7 @@ export function BottomNav({ current }: { current: string }) {
                 : 'text-forest-300 dark:text-forest-500'
             }`}
           >
-            <span className="text-lg">{item.icon}</span>
+            <item.Icon size={20} />
             <span>{item.label}</span>
           </button>
         );

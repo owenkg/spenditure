@@ -5,6 +5,7 @@ import { api, isAuthenticated } from '~/lib/api';
 import { formatCurrency } from '@spenditure/utils';
 import { BottomNav } from '~/components/BottomNav';
 import { AddTransactionSheet } from '~/components/AddTransactionSheet';
+import { IconArrowUp, IconArrowDown, IconTransfer, IconChevronLeft, IconChevronRight } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Transactions — Spenditure' }];
 
@@ -181,7 +182,7 @@ export default function Transactions() {
               onClick={prevMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-parchment-200 dark:hover:bg-forest-700 text-forest-400 dark:text-parchment-400"
               aria-label="Previous month"
-            >‹</button>
+            ><IconChevronLeft size={16} /></button>
             <span className="text-sm font-medium text-forest-600 dark:text-parchment-100 min-w-[110px] text-center">
               {monthLabel}
             </span>
@@ -189,7 +190,7 @@ export default function Transactions() {
               onClick={nextMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-parchment-200 dark:hover:bg-forest-700 text-forest-400 dark:text-parchment-400"
               aria-label="Next month"
-            >›</button>
+            ><IconChevronRight size={16} /></button>
           </div>
         </div>
 
@@ -295,13 +296,17 @@ export default function Transactions() {
                   {items.map((tx) => (
                     <li key={tx.id} className="flex items-center gap-3 px-4 py-3">
                       <span
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0"
+                        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{
                           backgroundColor: (tx.category?.color ?? '#6B7280') + '22',
                           color: tx.category?.color ?? '#6B7280',
                         }}
                       >
-                        {tx.category?.icon ?? (tx.type === 'TRANSFER' ? '⇄' : tx.type === 'INCOME' ? '↑' : '↓')}
+                        {tx.type === 'TRANSFER'
+                          ? <IconTransfer size={16} />
+                          : tx.type === 'INCOME'
+                          ? <IconArrowUp size={16} />
+                          : <IconArrowDown size={16} />}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-forest-600 dark:text-parchment-100 truncate">
@@ -329,7 +334,7 @@ export default function Transactions() {
                             : 'text-red-500'
                         }`}
                       >
-                        {tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '⇄' : '−'}
+                        {tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '' : '−'}
                         {formatCurrency(tx.amount, 'UGX')}
                       </p>
                     </li>

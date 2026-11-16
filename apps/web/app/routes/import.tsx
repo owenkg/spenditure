@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from '@remix-run/react';
 import { BottomNav } from '~/components/BottomNav';
 import { api } from '~/lib/api';
+import { IconDownload } from '~/components/Icons';
 
 const BASE = (import.meta as { env: Record<string, string> }).env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -65,9 +66,9 @@ function ImportCard({
           <a
             href={templateUrl}
             download
-            className="text-xs text-amber-500 font-medium whitespace-nowrap shrink-0 hover:underline"
+            className="text-xs text-amber-500 font-medium whitespace-nowrap shrink-0 hover:underline flex items-center gap-1"
           >
-            ↓ Download template
+            <IconDownload size={13} /> Download template
           </a>
         )}
       </div>

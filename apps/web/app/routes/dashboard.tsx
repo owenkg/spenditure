@@ -4,6 +4,7 @@ import type { MetaFunction } from '@remix-run/react';
 import { api, isAuthenticated, logout } from '~/lib/api';
 import { formatCurrency } from '@spenditure/utils';
 import { BottomNav } from '~/components/BottomNav';
+import { ACCOUNT_TYPE_ICONS, IconCreditCard, IconLogOut } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Dashboard — Spenditure' }];
 
@@ -23,9 +24,6 @@ interface Budget {
   period: string; category: { name: string; color: string; icon: string };
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  BANK: '🏦', MOBILE_MONEY: '📱', CASH: '💵', SAVINGS: '🏦', INVESTMENT: '📈',
-};
 
 function SpendingChart({ data }: { data: ChartDay[] }) {
   const maxVal = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1);
@@ -149,7 +147,7 @@ export default function Dashboard() {
             className="w-9 h-9 rounded-full flex items-center justify-center text-forest-400 dark:text-parchment-400 hover:bg-parchment-200 dark:hover:bg-forest-700 transition-colors"
             aria-label="Logout"
           >
-            <span className="text-lg">↩</span>
+            <IconLogOut size={18} />
           </button>
         </header>
 
@@ -209,8 +207,8 @@ export default function Dashboard() {
             <div className="space-y-2">
               {accounts.map((acc) => (
                 <div key={acc.id} className="bg-white dark:bg-forest-700 rounded-xl px-4 py-3 flex items-center gap-3 border border-parchment-200 dark:border-forest-600">
-                  <span className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0" style={{ backgroundColor: acc.color + '22' }}>
-                    {TYPE_ICONS[acc.type] ?? '💳'}
+                  <span className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: acc.color + '22', color: acc.color }}>
+                    {(() => { const I = ACCOUNT_TYPE_ICONS[acc.type] ?? IconCreditCard; return <I size={16} />; })()}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-forest-600 dark:text-parchment-100 truncate">{acc.name}</p>

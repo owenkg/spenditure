@@ -3,6 +3,7 @@ import { Link, useNavigate } from '@remix-run/react';
 import type { MetaFunction } from '@remix-run/react';
 import { isAuthenticated, api } from '~/lib/api';
 import { BottomNav } from '~/components/BottomNav';
+import { ACCOUNT_TYPE_ICONS, IconCreditCard, IconSun, IconMoon, IconX, IconChevronLeft } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Accounts — Spenditure' }];
 
@@ -70,7 +71,7 @@ export default function AccountsPage() {
       <header className="sticky top-0 z-10 bg-forest-600 px-4 py-4">
         <div className="flex items-center justify-between">
           {selected ? (
-            <button onClick={() => setSelected(null)} className="text-white/70 text-sm">← Back</button>
+            <button onClick={() => setSelected(null)} className="text-white/70 text-sm flex items-center gap-1"><IconChevronLeft size={14} /> Back</button>
           ) : (
             <h1 className="text-white font-semibold">Accounts</h1>
           )}
@@ -101,10 +102,10 @@ export default function AccountsPage() {
                 className="w-full bg-white dark:bg-forest-900 rounded-2xl p-4 shadow-sm flex items-center gap-4 text-left"
               >
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: acct.color }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: acct.color + '22', color: acct.color }}
                 >
-                  {acct.name.charAt(0)}
+                  {(() => { const I = ACCOUNT_TYPE_ICONS[acct.type] ?? IconCreditCard; return <I size={18} />; })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-forest-600 dark:text-parchment-100 truncate">{acct.name}</p>
@@ -183,7 +184,7 @@ export default function AccountsPage() {
           }}
         />
       )}
-      <BottomNav current="accounts" />
+      <BottomNav current="/accounts" />
     </div>
   );
 }
@@ -248,7 +249,7 @@ function CashReconcileSheet({
       <form onSubmit={submit} className="relative bg-white dark:bg-forest-900 rounded-t-3xl p-6 space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-forest-600 dark:text-parchment-100 text-lg">Reconcile Cash</h2>
-          <button type="button" onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-gray-400"><IconX size={18} /></button>
         </div>
 
         {/* Morning / Evening toggle */}
@@ -258,13 +259,13 @@ function CashReconcileSheet({
               key={p}
               type="button"
               onClick={() => setPeriod(p)}
-              className={`flex-1 py-2.5 text-sm font-medium capitalize transition-colors ${
+              className={`flex-1 py-2.5 text-sm font-medium capitalize transition-colors flex items-center justify-center gap-1.5 ${
                 period === p
                   ? 'bg-forest-600 text-white'
                   : 'text-forest-600 dark:text-parchment-100'
               }`}
             >
-              {p === 'morning' ? '☀️ Morning' : '🌙 Evening'}
+              {p === 'morning' ? <><IconSun size={14} /> Morning</> : <><IconMoon size={14} /> Evening</>}
             </button>
           ))}
         </div>
