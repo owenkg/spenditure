@@ -23,7 +23,8 @@ CREATE TABLE "new_Audit" (
     CONSTRAINT "Audit_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Audit_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-INSERT INTO "new_Audit" ("createdAt", "findings", "id", "importPct", "importedCount", "manualCount", "period", "totalExpense", "totalIncome", "updatedAt", "userId") SELECT "createdAt", "findings", "id", "importPct", "importedCount", "manualCount", "period", "totalExpense", "totalIncome", "updatedAt", "userId" FROM "Audit";
+-- Existing audit rows cannot be migrated (no accountId available) — clear them.
+DELETE FROM "Audit";
 DROP TABLE "Audit";
 ALTER TABLE "new_Audit" RENAME TO "Audit";
 CREATE UNIQUE INDEX "Audit_userId_accountId_period_key" ON "Audit"("userId", "accountId", "period");
