@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Post,
@@ -30,33 +31,53 @@ export class ImportController {
   @Version('1')
   @ApiOperation({ summary: 'Import DFCU Bank PDF statement' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary', description: 'DFCU Bank PDF statement' } }, required: ['file'] } })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        accountId: { type: 'string', description: 'Target account ID (optional — defaults to first BANK account)' },
+      },
+      required: ['file'],
+    },
+  })
   @UseInterceptors(FileInterceptor('file', upload))
   importDfcu(
     @CurrentUser() user: JwtPayload,
     @UploadedFile() file: Express.Multer.File,
+    @Body('accountId') accountId?: string,
   ): Promise<ImportResult> {
-    return this.importService.importDfcu(user.sub, file);
+    return this.importService.importDfcu(user.sub, file, accountId || undefined);
   }
 
   @Post('momo')
   @Version('1')
-  @ApiOperation({ summary: 'Import MTN MoMo .eml email statement' })
+  @ApiOperation({ summary: 'Import MTN MoMo .xlsx statement' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary', description: 'MTN MoMo .eml file' } }, required: ['file'] } })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        accountId: { type: 'string', description: 'Target account ID (optional — defaults to first MOBILE_MONEY account)' },
+      },
+      required: ['file'],
+    },
+  })
   @UseInterceptors(FileInterceptor('file', upload))
   importMomo(
     @CurrentUser() user: JwtPayload,
     @UploadedFile() file: Express.Multer.File,
+    @Body('accountId') accountId?: string,
   ): Promise<ImportResult> {
-    return this.importService.importMomo(user.sub, file);
+    return this.importService.importMomo(user.sub, file, accountId || undefined);
   }
 
   @Post('ledger')
   @Version('1')
   @ApiOperation({ summary: 'Import personal ledger .xlsx spreadsheet' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary', description: 'Ledger .xlsx file' } }, required: ['file'] } })
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } }, required: ['file'] } })
   @UseInterceptors(FileInterceptor('file', upload))
   importLedger(
     @CurrentUser() user: JwtPayload,

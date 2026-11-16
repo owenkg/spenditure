@@ -9,24 +9,33 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List audit snapshots (last 12 months)' })
-  listAudits(@CurrentUser() user: JwtPayload) {
-    return this.auditService.listAudits(user.sub);
+  @ApiOperation({ summary: 'List auditable accounts with their last audit status' })
+  listAccounts(@CurrentUser() user: JwtPayload) {
+    return this.auditService.getAuditableAccounts(user.sub);
   }
 
   @Post('run')
-  @ApiOperation({ summary: 'Trigger audit for the last 3 months' })
-  async runAudit(@CurrentUser() user: JwtPayload) {
-    await this.auditService.runAuditForRecentMonths(user.sub);
-    return this.auditService.listAudits(user.sub);
+  @ApiOperation({ summary: 'Run audit for all auditable accounts (last 3 months)' })
+  async runAll(@CurrentUser() user: JwtPayload) {
+    await this.auditService.runAuditForUser(user.sub);
+    return this.auditService.getAuditableAccounts(user.sub);
   }
 
-  @Get(':period')
-  @ApiOperation({ summary: 'Get audit for a specific period (YYYY-MM)' })
-  getAudit(
+  @Get(':accountId/history')
+  @ApiOperation({ summary: 'List audit history for a specific account' })
+  listForAccount(
     @CurrentUser() user: JwtPayload,
-    @Param('period') period: string,
+    @Param('accountId') accountId: string,
   ) {
-    return this.auditService.getAudit(user.sub, period);
+    return this.auditService.listAuditsForAccount(user.sub, accountId);
+  }
+
+  @Post(':accountId/run')
+  @ApiOperation({ summary: 'Run audit for a specific account (last 3 months)' })
+  async runForAccount(
+    @CurrentUser() user: JwtPayload,
+    @Param('accountId') accountId: string,
+  ) {
+    return this.auditService.runAuditForAccount(user.sub, accountId);
   }
 }

@@ -124,13 +124,16 @@ export default function Dashboard() {
         setSummary(sum as Summary);
         setChartData(chart as ChartDay[]);
         setBudgets((bdgs as Budget[]).slice(0, 4));
-        const audits = auditList as Array<{ updatedAt: string }>;
-        if (audits.length === 0) {
+        const auditAccounts = auditList as Array<{ daysSinceAudit: number | null }>;
+        if (auditAccounts.length === 0) {
           setAuditDaysAgo(999);
         } else {
-          const latest = new Date(audits[0].updatedAt);
-          const days = Math.floor((now.getTime() - latest.getTime()) / 86400000);
-          setAuditDaysAgo(days);
+          // Show nudge if any account is overdue
+          const maxDays = auditAccounts.reduce((max, a) => {
+            const d = a.daysSinceAudit ?? 999;
+            return d > max ? d : max;
+          }, 0);
+          setAuditDaysAgo(maxDays);
         }
       })
       .catch(() => navigate('/auth/pin'))

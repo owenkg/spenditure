@@ -14,36 +14,36 @@ export class ImportService {
     private readonly auditService: AuditService,
   ) {}
 
-  async importDfcu(userId: string, file: Express.Multer.File): Promise<ImportResult> {
+  async importDfcu(userId: string, file: Express.Multer.File, accountId?: string): Promise<ImportResult> {
     if (!file.mimetype.includes('pdf') && !file.originalname.endsWith('.pdf')) {
       throw new BadRequestException('Only PDF files are accepted for DFCU import');
     }
 
-    const account = await this.prisma.account.findFirst({
-      where: { userId, type: 'BANK', isArchived: false },
-    });
+    const account = accountId
+      ? await this.prisma.account.findFirst({ where: { id: accountId, userId, isArchived: false } })
+      : await this.prisma.account.findFirst({ where: { userId, type: 'BANK', isArchived: false } });
     if (!account) throw new BadRequestException('No bank account found. Add a DFCU Bank account first.');
 
     const transactions = await parseDfcuPdf(file.buffer);
     const result = await this.upsertTransactions(userId, account.id, transactions);
-    if (result.imported > 0) this.triggerAudit(userId, transactions.map((t) => t.date));
+    if (result.imported > 0) this.triggerAudit(userId, account.id, transactions.map((t) => t.date));
     return result;
   }
 
-  async importMomo(userId: string, file: Express.Multer.File): Promise<ImportResult> {
+  async importMomo(userId: string, file: Express.Multer.File, accountId?: string): Promise<ImportResult> {
     const name = file.originalname.toLowerCase();
     if (!name.endsWith('.xlsx') && !file.mimetype.includes('spreadsheet') && !file.mimetype.includes('excel')) {
       throw new BadRequestException('Only .xlsx files are accepted for MoMo import');
     }
 
-    const account = await this.prisma.account.findFirst({
-      where: { userId, type: 'MOBILE_MONEY', isArchived: false },
-    });
+    const account = accountId
+      ? await this.prisma.account.findFirst({ where: { id: accountId, userId, isArchived: false } })
+      : await this.prisma.account.findFirst({ where: { userId, type: 'MOBILE_MONEY', isArchived: false } });
     if (!account) throw new BadRequestException('No mobile money account found. Add an MTN MoMo account first.');
 
     const transactions = await parseMomoXlsx(file.buffer);
     const result = await this.upsertTransactions(userId, account.id, transactions);
-    if (result.imported > 0) this.triggerAudit(userId, transactions.map((t) => t.date));
+    if (result.imported > 0) this.triggerAudit(userId, account.id, transactions.map((t) => t.date));
     return result;
   }
 
@@ -201,12 +201,11 @@ export class ImportService {
     return { imported, skipped, errors };
   }
 
-  private triggerAudit(userId: string, dates: Date[]): void {
-    // Collect unique YYYY-MM periods touched by the import and audit them
+  private triggerAudit(userId: string, accountId: string, dates: Date[]): void {
     const periods = [...new Set(
       dates.map((d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`),
     )];
     // Fire and forget — import response is not delayed
-    Promise.all(periods.map((p) => this.auditService.runAudit(userId, p))).catch(() => {});
+    Promise.all(periods.map((p) => this.auditService.runAudit(userId, accountId, p))).catch(() => {});
   }
 }
