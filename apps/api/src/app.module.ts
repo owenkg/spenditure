@@ -14,6 +14,7 @@ import { ImportModule } from './import/import.module';
 import { ExportModule } from './export/export.module';
 import { SettingsModule } from './settings/settings.module';
 import { RecurringModule } from './recurring/recurring.module';
+import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AppService } from './app.service';
@@ -36,6 +37,7 @@ import { AppController, RootController } from './app.controller';
     ExportModule,
     SettingsModule,
     RecurringModule,
+    AuditModule,
   ],
   providers: [
     AppService,

@@ -4,7 +4,7 @@ import type { MetaFunction } from '@remix-run/react';
 import { api, isAuthenticated, logout } from '~/lib/api';
 import { formatCurrency } from '@spenditure/utils';
 import { BottomNav } from '~/components/BottomNav';
-import { ACCOUNT_TYPE_ICONS, IconCreditCard, IconLogOut } from '~/components/Icons';
+import { ACCOUNT_TYPE_ICONS, IconCreditCard, IconLogOut, IconRepeat } from '~/components/Icons';
 
 export const meta: MetaFunction = () => [{ title: 'Dashboard — Spenditure' }];
 
@@ -101,6 +101,7 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState<ChartDay[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [auditDaysAgo, setAuditDaysAgo] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) { navigate('/auth/pin'); return; }
@@ -115,13 +116,22 @@ export default function Dashboard() {
       api.get<Summary>(`/api/v1/transactions/summary?dateFrom=${monthStart}&dateTo=${monthEnd}`),
       api.get<ChartDay[]>('/api/v1/transactions/chart?days=7'),
       api.get<Budget[]>('/api/v1/budgets'),
+      api.get<Array<{ updatedAt: string }>>('/api/v1/audit').catch(() => []),
     ])
-      .then(([accs, txns, sum, chart, bdgs]) => {
+      .then(([accs, txns, sum, chart, bdgs, auditList]) => {
         setAccounts(accs as Account[]);
         setRecentTxns(((txns as unknown as { data: Transaction[] }).data) ?? []);
         setSummary(sum as Summary);
         setChartData(chart as ChartDay[]);
         setBudgets((bdgs as Budget[]).slice(0, 4));
+        const audits = auditList as Array<{ updatedAt: string }>;
+        if (audits.length === 0) {
+          setAuditDaysAgo(999);
+        } else {
+          const latest = new Date(audits[0].updatedAt);
+          const days = Math.floor((now.getTime() - latest.getTime()) / 86400000);
+          setAuditDaysAgo(days);
+        }
       })
       .catch(() => navigate('/auth/pin'))
       .finally(() => setLoading(false));
@@ -199,6 +209,27 @@ export default function Dashboard() {
                 {budgets.map((b) => <BudgetCard key={b.id} budget={b} />)}
               </div>
             </section>
+          )}
+
+          {/* Audit nudge */}
+          {auditDaysAgo !== null && auditDaysAgo >= 30 && (
+            <button
+              onClick={() => navigate('/audit')}
+              className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-4 py-3 text-left"
+            >
+              <IconRepeat size={18} className="text-amber-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                  {auditDaysAgo >= 999 ? 'Run your first financial audit' : `Audit is ${auditDaysAgo} days old`}
+                </p>
+                <p className="text-xs text-amber-600/70 dark:text-amber-500/70 mt-0.5">
+                  {auditDaysAgo >= 999
+                    ? 'Check how well your records match your bank & MoMo statements'
+                    : 'Import your latest statements to run a fresh one'}
+                </p>
+              </div>
+              <IconRepeat size={14} className="text-amber-400 flex-shrink-0 rotate-0" />
+            </button>
           )}
 
           {/* Accounts */}

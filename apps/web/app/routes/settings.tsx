@@ -76,6 +76,13 @@ export default function SettingsPage() {
           </Link>
         </Section>
 
+        {/* Audit */}
+        <Section title="Audit">
+          <Link to="/audit" className="block px-4 py-3 text-sm text-forest-600 dark:text-parchment-100">
+            Financial Audit →
+          </Link>
+        </Section>
+
         {/* Export */}
         <Section title="Export">
           <button onClick={() => exportDownload('csv')} className="w-full text-left px-4 py-3 text-sm text-forest-600 dark:text-parchment-100 flex items-center gap-2">

@@ -24,6 +24,7 @@ model User {
   categories   Category[]
   budgets      Budget[]
   recurring    RecurringTransaction[]
+  audits       Audit[]
 }
 
 // type: BANK | MOBILE_MONEY | CASH | SAVINGS | INVESTMENT
@@ -101,6 +102,24 @@ model Budget {
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Audit {
+  id             String   @id @default(cuid())
+  userId         String
+  period         String   // "YYYY-MM"
+  importedCount  Int      @default(0)
+  manualCount    Int      @default(0)
+  importPct      Float    @default(0)
+  totalIncome    Decimal  @default(0)
+  totalExpense   Decimal  @default(0)
+  findings       String   @default("{}") // JSON
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
 }
 
 // frequency: DAILY | WEEKLY | BIWEEKLY | MONTHLY | QUARTERLY | YEARLY

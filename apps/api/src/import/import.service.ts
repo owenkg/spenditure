@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { parseDfcuPdf } from './parsers/dfcu.parser';
 import { parseMomoXlsx } from './parsers/momo.parser';
 import { parseLedgerXlsx, type LedgerAccountType } from './parsers/ledger.parser';
@@ -8,7 +9,10 @@ import type { ImportResult } from './dto/import-result.dto';
 
 @Injectable()
 export class ImportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   async importDfcu(userId: string, file: Express.Multer.File): Promise<ImportResult> {
     if (!file.mimetype.includes('pdf') && !file.originalname.endsWith('.pdf')) {
@@ -21,7 +25,9 @@ export class ImportService {
     if (!account) throw new BadRequestException('No bank account found. Add a DFCU Bank account first.');
 
     const transactions = await parseDfcuPdf(file.buffer);
-    return this.upsertTransactions(userId, account.id, transactions);
+    const result = await this.upsertTransactions(userId, account.id, transactions);
+    if (result.imported > 0) this.triggerAudit(userId, transactions.map((t) => t.date));
+    return result;
   }
 
   async importMomo(userId: string, file: Express.Multer.File): Promise<ImportResult> {
@@ -36,7 +42,9 @@ export class ImportService {
     if (!account) throw new BadRequestException('No mobile money account found. Add an MTN MoMo account first.');
 
     const transactions = await parseMomoXlsx(file.buffer);
-    return this.upsertTransactions(userId, account.id, transactions);
+    const result = await this.upsertTransactions(userId, account.id, transactions);
+    if (result.imported > 0) this.triggerAudit(userId, transactions.map((t) => t.date));
+    return result;
   }
 
   getLedgerTemplate(): Promise<Buffer> {
@@ -191,5 +199,14 @@ export class ImportService {
     }
 
     return { imported, skipped, errors };
+  }
+
+  private triggerAudit(userId: string, dates: Date[]): void {
+    // Collect unique YYYY-MM periods touched by the import and audit them
+    const periods = [...new Set(
+      dates.map((d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`),
+    )];
+    // Fire and forget — import response is not delayed
+    Promise.all(periods.map((p) => this.auditService.runAudit(userId, p))).catch(() => {});
   }
 }
