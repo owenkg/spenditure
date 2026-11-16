@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Audit } from '@prisma/client';
 
@@ -144,7 +144,7 @@ export class AuditService {
   }
 
   // Keep for backward compat (called from import.service)
-  async runAuditForRecentMonths(userId: string, monthsBack = 2): Promise<void> {
+  async runAuditForRecentMonths(userId: string): Promise<void> {
     await this.runAuditForUser(userId);
   }
 
