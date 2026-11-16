@@ -4,6 +4,9 @@
   - Added the required column `accountId` to the `Audit` table without a default value. This is not possible if the table is not empty.
 
 */
+-- Drop orphaned table left by previous failed attempt (idempotent)
+DROP TABLE IF EXISTS "new_Audit";
+
 -- RedefineTables
 PRAGMA defer_foreign_keys=ON;
 PRAGMA foreign_keys=OFF;
